@@ -1,0 +1,153 @@
+#!/usr/bin/env python
+import argparse # optparse is deprecated
+from itertools import islice # slicing for iterators
+global simple_meteor_alpha 
+from nltk import word_tokenize, wordnet, pos_tag
+import nltk
+from string import punctuation
+global punct
+punct = set(punctuation)
+#############################################################################################
+ 
+def word_matches(h, ref):
+    return sum(1 for w in h if w in ref)
+
+def word_matches2(h, ref):
+    
+    sum=0
+    for w in h : 
+        if w in ref:
+            ref.remove(w)
+            sum+=1
+            
+    return sum
+
+def sup(h, ref):
+    def create2grams(sample_list):
+        res=[]
+        if len(sample_list)==1 :
+            return sample_list
+        for i in range(len(sample_list)):
+            if (i!=len(sample_list)-1):
+                res.append(sample_list[i]+" "+sample_list[i+1])
+                #print i
+        return res
+    
+    def create3grams(sample_list):
+        res=[]
+        if len(sample_list)==1 or len(sample_list)==2 :
+            return sample_list
+        for i in range(len(sample_list)-2):
+            
+            res.append(sample_list[i]+" "+sample_list[i+1] + " "+sample_list[i+2] )
+                #print i
+        return res
+        
+    bi_h = create3grams(h)
+    bi_ref = create3grams(ref)
+    bi_ref_set = set(bi_ref)
+    return word_matches2(bi_h, bi_ref_set)
+ 
+def main():
+    global simple_meteor_alpha 
+    
+    parser = argparse.ArgumentParser(description='Evaluate translation hypotheses.')
+    parser.add_argument('-i', '--input', default='data/hyp1-hyp2-ref',
+            help='input file (default data/hyp1-hyp2-ref)')
+    parser.add_argument('-n', '--num_sentences', default=None, type=int,
+            help='Number of hypothesis pairs to evaluate')
+    parser.add_argument('-a', '--alpha_parameter', default=0.9, type=float,
+            help='alpha for meteor')
+    opts = parser.parse_args()
+    
+    simple_meteor_alpha = opts.alpha_parameter
+    
+    # we create a generator and avoid loading all sentences into a list
+    def sentences():
+        with open(opts.input) as f:
+            for pair in f:
+                yield [sentence.strip() for sentence in pair.split(' ||| ')]
+                
+    
+
+################################################################################################
+
+    def simple_METEOR(h_list, e_list):
+        global simple_meteor_alpha
+        
+        h_intersect_e = sup( h_list, e_list )
+        try:
+            precision = h_intersect_e / float( len(h_list))
+            recall    = h_intersect_e / float( len(e_list))  
+            return (precision * recall) / ((1-simple_meteor_alpha)* recall + simple_meteor_alpha* precision)
+        except ZeroDivisionError as _:
+            return 0
+    
+    def chunked_METEOR(h_list, e_list):
+        
+        #e_list = ['israeli','officials','are','responsible','for','airport','security']
+        #h_list = ['israeli','officials','responsible','of','airport','safety']
+        
+        h_intersect_e = sup( h_list, set(e_list) )
+        
+        if len(h_list) > len(e_list):
+            linkFrom_list = e_list
+            linkTo_list   = h_list
+        else:
+            linkFrom_list = h_list
+            linkTo_list   = e_list           
+        
+        remaining_indexes = set( range(len(linkTo_list)))
+        linkTo_list = [(linkTo_list[i],i) for i in range(len(linkTo_list))]
+        
+        
+        chunks=0
+        previousMatchedToken= -1
+        for fromword in linkFrom_list:
+            for toWord, toPosition in linkTo_list:
+                if toPosition not in remaining_indexes: continue
+                
+                if fromword == toWord:
+                    if previousMatchedToken == -1: # => unset
+                        chunks+=1
+                    previousMatchedToken = toPosition
+                    remaining_indexes.remove(toPosition)
+                    break
+                else:
+                    previousMatchedToken = -1      # => unset
+                
+        if h_intersect_e != 0:
+            penalty = 0.5 * (chunks/ float(h_intersect_e))
+        else:
+            penalty = 0
+            
+        try:
+            precision = h_intersect_e / float( len(h_list))
+            recall    = h_intersect_e / float( len(e_list))  
+            F = (precision * recall) / ((1-simple_meteor_alpha)* recall + simple_meteor_alpha* precision)
+            return F* (1-penalty)
+        except ZeroDivisionError as _:
+            return 0                
+                   
+                    
+    
+
+
+################################################################################################
+    
+    # note: the -n option does not work in the original code
+    for h1, h2, ref in islice(sentences(), opts.num_sentences):
+        
+        #chunked_METEOR()
+        
+        h1_match = simple_METEOR(h1, ref)
+        h2_match = simple_METEOR(h2, ref)
+        
+        
+        print(1 if h1_match > h2_match else # \begin{cases}
+                (0 if h1_match == h2_match
+                    else -1)) # \end{cases}
+ 
+# convention to allow import of this file as a module
+if __name__ == '__main__':
+    main()

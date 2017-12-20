@@ -1,0 +1,116 @@
+FST french
+  U0 ->                                    # Final state
+  U1 ->                                    # Final state
+  U10 ->                                   # Final state
+  U11 ->                                   # Final state
+  U12 ->                                   # Final state
+  U13 ->                                   # Final state
+  U14 ->                                   # Final state
+  U15 ->                                   # Final state
+  U16 ->                                   # Final state
+  U17 ->                                   # Final state
+  U18 ->                                   # Final state
+  U19 ->                                   # Final state
+  U2 ->                                    # Final state
+  U3 ->                                    # Final state
+  U4 ->                                    # Final state
+  U5 ->                                    # Final state
+  U6 ->                                    # Final state
+  U7 ->                                    # Final state
+  U8 ->                                    # Final state
+  U9 ->                                    # Final state
+  -> start                                 # Initial state
+  start -> H0 [0:]                         # Arc
+  start -> H5 [5:cinq cent]                # Arc
+  H5 -> H:(T0-T9)_COMMON [:]               # Arc
+  start -> H6 [6:six cent]                 # Arc
+  H6 -> H:(T0-T9)_COMMON [:]               # Arc
+  start -> H7 [7:sept cent]                # Arc
+  H7 -> H:(T0-T9)_COMMON [:]               # Arc
+  start -> H8 [8:huit cent]                # Arc
+  H8 -> H:(T0-T9)_COMMON [:]               # Arc
+  start -> H9 [9:neuf cent]                # Arc
+  H9 -> H:(T0-T9)_COMMON [:]               # Arc
+  start -> H1 [1:cent]                     # Arc
+  H0 -> 0_case [0:]                        # Arc
+  0_case -> U0 [0:zero]                    # Arc
+  0_case -> U0 [1:un]                      # Arc
+  0_case -> T:(U2-U9)_COMMON [:]           # Arc
+  H:(T0-T9)_COMMON -> T0 [0:]              # Arc
+  H:(T0-T9)_COMMON -> T1 [1:]              # Arc
+  H0 -> T1 [1:]                            # Arc
+  H:(T0-T9)_COMMON -> T2 [2:vingt]         # Arc
+  H0 -> T2 [2:vingt]                       # Arc
+  H:(T0-T9)_COMMON -> T3 [3:trente]        # Arc
+  H1 -> H:(T0-T9)_COMMON [:]               # Arc
+  H0 -> T3 [3:trente]                      # Arc
+  H:(T0-T9)_COMMON -> T4 [4:quarante]      # Arc
+  H0 -> T4 [4:quarante]                    # Arc
+  H:(T0-T9)_COMMON -> T5 [5:cinquante]     # Arc
+  H0 -> T5 [5:cinquante]                   # Arc
+  H:(T0-T9)_COMMON -> T6 [6:soixante]      # Arc
+  H0 -> T6 [6:soixante]                    # Arc
+  H:(T0-T9)_COMMON -> T7 [7:soixante]      # Arc
+  H0 -> T7 [7:soixante]                    # Arc
+  H:(T0-T9)_COMMON -> T8 [8:quatre vingt]  # Arc
+  start -> H2 [2:deux cent]                # Arc
+  H0 -> T8 [8:quatre vingt]                # Arc
+  H:(T0-T9)_COMMON -> T9 [9:quatre vingt]  # Arc
+  H0 -> T9 [9:quatre vingt]                # Arc
+  T0 -> U0 [0:]                            # Arc
+  T0 -> U1 [1:un]                          # Arc
+  T0 -> T:(U2-U9)_COMMON [:]               # Arc
+  T1 -> T:(U11-U19)_COMMON [:]             # Arc
+  T1 -> U10 [0:dix]                        # Arc
+  T2 -> U0 [0:]                            # Arc
+  T2 -> U1 [1:et un]                       # Arc
+  H2 -> H:(T0-T9)_COMMON [:]               # Arc
+  T2 -> T:(U2-U9)_COMMON [:]               # Arc
+  T3 -> U0 [0:]                            # Arc
+  T3 -> U1 [1:et un]                       # Arc
+  T3 -> T:(U2-U9)_COMMON [:]               # Arc
+  T4 -> U0 [0:]                            # Arc
+  T4 -> U1 [1:et un]                       # Arc
+  T4 -> T:(U2-U9)_COMMON [:]               # Arc
+  T5 -> U0 [0:]                            # Arc
+  T5 -> U1 [1:et un]                       # Arc
+  T5 -> T:(U2-U9)_COMMON [:]               # Arc
+  start -> H3 [3:trois cent]               # Arc
+  T6 -> U0 [0:]                            # Arc
+  T6 -> U1 [1:et un]                       # Arc
+  T6 -> T:(U2-U9)_COMMON [:]               # Arc
+  T7 -> U10 [0:dix]                        # Arc
+  T7 -> U11 [1:et onze]                    # Arc
+  T7 -> U12 [2:douze]                      # Arc
+  T7 -> U13 [3:treize]                     # Arc
+  T7 -> U14 [4:quatorze]                   # Arc
+  T7 -> U15 [5:quinze]                     # Arc
+  T7 -> U16 [6:seize]                      # Arc
+  H3 -> H:(T0-T9)_COMMON [:]               # Arc
+  T7 -> U17 [7:dix sept]                   # Arc
+  T7 -> U18 [8:dix huit]                   # Arc
+  T7 -> U19 [9:dix neuf]                   # Arc
+  T8 -> U0 [0:]                            # Arc
+  T8 -> U1 [1:un]                          # Arc
+  T8 -> T:(U2-U9)_COMMON [:]               # Arc
+  T9 -> U10 [0:dix]                        # Arc
+  T9 -> T:(U11-U19)_COMMON [:]             # Arc
+  T:(U11-U19)_COMMON -> U11 [1:onze]       # Arc
+  T:(U2-U9)_COMMON -> U2 [2:deux]          # Arc
+  start -> H4 [4:quatre cent]              # Arc
+  T:(U11-U19)_COMMON -> U12 [2:douze]      # Arc
+  T:(U2-U9)_COMMON -> U3 [3:trois]         # Arc
+  T:(U11-U19)_COMMON -> U13 [3:treize]     # Arc
+  T:(U2-U9)_COMMON -> U4 [4:quatre]        # Arc
+  T:(U11-U19)_COMMON -> U14 [4:quatorze]   # Arc
+  T:(U2-U9)_COMMON -> U5 [5:cinq]          # Arc
+  T:(U11-U19)_COMMON -> U15 [5:quinze]     # Arc
+  T:(U2-U9)_COMMON -> U6 [6:six]           # Arc
+  T:(U11-U19)_COMMON -> U16 [6:seize]      # Arc
+  T:(U2-U9)_COMMON -> U7 [7:sept]          # Arc
+  H4 -> H:(T0-T9)_COMMON [:]               # Arc
+  T:(U11-U19)_COMMON -> U17 [7:dix sept]   # Arc
+  T:(U2-U9)_COMMON -> U8 [8:huit]          # Arc
+  T:(U11-U19)_COMMON -> U18 [8:dix huit]   # Arc
+  T:(U2-U9)_COMMON -> U9 [9:neuf]          # Arc
+  T:(U11-U19)_COMMON -> U19 [9:dix neuf]   # Arc

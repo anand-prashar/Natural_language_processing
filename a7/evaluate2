@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+import argparse # optparse is deprecated
+from itertools import islice # slicing for iterators
+global simple_meteor_alpha 
+from nltk import word_tokenize, wordnet, pos_tag
+import nltk
+from string import punctuation
+global punct
+punct = set(punctuation)
+#############################################################################################
+ 
+def word_matches(h, ref):
+    return sum(1 for w in h if w in ref)
+ 
+def main():
+    global simple_meteor_alpha 
+    
+    parser = argparse.ArgumentParser(description='Evaluate translation hypotheses.')
+    parser.add_argument('-i', '--input', default='data/hyp1-hyp2-ref',
+            help='input file (default data/hyp1-hyp2-ref)')
+    parser.add_argument('-n', '--num_sentences', default=None, type=int,
+            help='Number of hypothesis pairs to evaluate')
+    parser.add_argument('-a', '--alpha_parameter', default=0.9, type=float,
+            help='alpha for meteor')
+    opts = parser.parse_args()
+    
+    simple_meteor_alpha = opts.alpha_parameter
+    
+    # we create a generator and avoid loading all sentences into a list
+    def sentences():
+        with open(opts.input) as f:
+            for pair in f:
+                yield [sentence.strip().split() for sentence in pair.split(' ||| ')]
+
+################################################################################################
+
+    def simple_METEOR(h_list, e_list):
+        global simple_meteor_alpha
+        
+        h_intersect_e = word_matches( h_list, set(e_list) )
+        precision = h_intersect_e / float( len(h_list))
+        recall    = h_intersect_e / float( len(e_list))
+        try:
+            return (precision * recall) / ((1-simple_meteor_alpha)* recall + simple_meteor_alpha* precision)
+        except ZeroDivisionError as _:
+            return 0
+
+    #===========================================================================
+    # def standardize_string(userString):
+    #     global punct
+    #     returnList = []
+    #     
+    #     word_tokens = [x for x in word_tokenize(userString) if x not in punct ]
+    #     
+    #     for word, pos in pos_tag(word_tokens):
+    #         if pos == 'vb':
+    #             if len(word)>3 and word[:-3] == 'ing':     #stemming
+    #                 returnList.append( word[:-3])
+    #             elif len(word)>2 and word[:-2] == 'es':    #stemming
+    #                 returnList.append( word[:-2])
+    #             else:    
+    #                 returnList.append( nltk.corpus.wordnet.morphy(word) )  #morphing
+    #         else: returnList.append( word )
+    #         
+    #     return returnList
+    #===========================================================================
+
+################################################################################################
+    
+    # note: the -n option does not work in the original code
+    for h1, h2, ref in islice(sentences(), opts.num_sentences):
+
+        h1_match = simple_METEOR(h1, ref)
+        h2_match = simple_METEOR(h2, ref)
+        
+        
+        print(1 if h1_match > h2_match else # \begin{cases}
+                (0 if h1_match == h2_match
+                    else -1)) # \end{cases}
+ 
+# convention to allow import of this file as a module
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,167 @@
+#!/usr/bin/env python
+import argparse  # optparse is deprecated
+from itertools import islice  # slicing for iterators
+from nltk.corpus import wordnet as wn
+from nltk.corpus import stopwords
+import io
+import string
+from nltk.stem import PorterStemmer
+
+
+def word_matches(h, ref):
+    sum = 0
+    matchlist = []
+    matchfound = False
+    for word in ref:
+        if word in h:
+            # print word, '<--matched-->'
+            matchfound = True
+            sum += 1
+            matchlist.append(int(1))
+        else:
+            for syn in wn.synsets(word):
+                for l in syn.lemmas():
+                    if l.name() in h:
+                        # print word, '<--matched to-->', l.name()
+                        matchfound = True
+                        sum += 1
+                        matchlist.append(int(1))
+                        break
+                if matchfound:
+                    break
+        if matchfound:
+            matchfound = False
+        else:
+            matchlist.append(int(0))
+
+    res = 0
+    flag = False
+    if sum == 0:
+        return sum, res
+
+    for x in matchlist:
+        if x == 0:
+            flag = False
+        elif flag == True:
+            continue
+        else:
+            flag = True
+            res += 1
+    # print 'match count: ',sum,'chunks: ',res
+    return sum, res
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Evaluate translation hypotheses.')
+    parser.add_argument('-i', '--input', default='data/hyp1-hyp2-ref',
+                        help='input file (default data/hyp1-hyp2-ref)')
+    parser.add_argument('-n', '--num_sentences', default=None, type=int,
+                        help='Number of hypothesis pairs to evaluate')
+    # note that if x == [1, 2, 3], then x[:None] == x[:] == x (copy); no need for sys.maxint
+    opts = parser.parse_args()
+    cachedStopWords = stopwords.words("english")
+    ps=PorterStemmer()
+
+    # we create a generator and avoid loading all sentences into a list
+    def sentences():
+        with io.open(opts.input, "r", encoding="utf-8") as f:
+            for pair in f:
+                yield [sentence.strip().split() for sentence in pair.split(' ||| ')]
+
+    def remove_punc(list):
+        res = []
+        for word in list:
+            res.append(''.join(x for x in word if x not in string.punctuation))
+        return res
+
+    def remove_stop_words(list):
+        res = []
+        for word in list:
+            if word not in cachedStopWords:
+                res.append(word)
+        return res
+
+    def stemming(list):
+        res = []
+        for word in list:
+            res.append(ps.stem(word))
+        return res
+
+    # note: the -n option does not work in the original code
+    for h1, h2, ref in islice(sentences(), opts.num_sentences):
+
+        # <-------------------Remove puntuations----------------------------------->
+        # ref=remove_punc(ref)
+        # h1=remove_punc(h1)
+        # h2=remove_punc(h2)
+
+        # <-------------------Remove stop words----------------------------------->
+        # ref=remove_stop_words(ref)
+        # h1=remove_stop_words(h1)
+        # h2=remove_stop_words(h2)
+
+        # <-------------------Stemming----------------------------------->
+        ref=stemming(ref)
+        h1=stemming(h1)
+        h2=stemming(h2)
+
+
+        rset = set(ref)
+
+        # <-------------------Unigram Matches and Chunks----------------------------------->
+        h1_match, h1_chunks = word_matches(h1, rset)
+        h2_match, h2_chunks = word_matches(h2, rset)
+
+        # <-------------------Precision and Recall----------------------------------->
+        if len(h1) == 0:
+            h1_precision = 0.0
+        else:
+            h1_precision = float(h1_match) / float(len(h1))
+
+        if len(h2) == 0:
+            h2_precision = 0.0
+        else:
+            h2_precision = float(h2_match) / float(len(h2))
+
+        if len(ref)==0:
+            h1_recall=0.0
+            h2_recall=0.0
+        else:
+            h1_recall = float(h1_match) / float(len(ref))
+            h2_recall = float(h2_match) / float(len(ref))
+
+        # <-------------------Meteor Penalties----------------------------------->
+        if h1_match == 0:
+            h1_penalty = 0.0
+        else:
+            h1_penalty = 0.5 * float(h1_chunks) / float(h1_match)
+        if h2_match == 0:
+            h2_penalty = 0.0
+        else:
+            h2_penalty = 0.5 * float(h2_chunks) / float(h2_match)
+
+        # <-------------------Meteor Calculation----------------------------------->
+        alpha = 0.9
+
+        if h1_precision == 0.0 or h1_recall == 0.0:
+            h1_meteor = 0.0
+        else:
+            h1_meteor = float(h1_precision * h1_recall) / float((alpha * h1_precision) + (1 - alpha) * (h1_recall))
+            # h1_meteor*=(1-h1_penalty)
+
+        if h2_precision == 0.0 or h2_recall == 0.0:
+            h2_meteor = 0.0
+        else:
+            h2_meteor = float(h2_precision * h2_recall) / float((alpha * h2_precision) + (1 - alpha) * (h2_recall))
+            # h2_meteor *= (1 - h2_penalty)
+
+        # <-------------------Print Results----------------------------------->
+
+        print(1 if h1_meteor > h2_meteor else  # \begin{cases}
+              (0 if h1_meteor == h2_meteor
+               else -1))  # \end{cases}
+
+
+# convention to allow import of this file as a module
+if __name__ == '__main__':
+    main()
